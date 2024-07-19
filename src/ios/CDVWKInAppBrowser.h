@@ -38,6 +38,7 @@
 @property (nonatomic, retain) CDVWKInAppBrowserViewController* inAppBrowserViewController;
 @property (nonatomic, copy) NSString* callbackId;
 @property (nonatomic, copy) NSRegularExpression *callbackIdPattern;
+@property (nonatomic, strong) NSString *urlString;
 
 + (id) getInstance;
 - (void)open:(CDVInvokedUrlCommand*)command;
@@ -67,7 +68,8 @@
 
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 @property (nonatomic, weak) CDVWKInAppBrowser* navigationDelegate;
-@property (nonatomic) NSURL* currentURL;
+@property (nonatomic, strong) NSURL* currentURL;
+@property (nonatomic, strong) NSString *urlString;
 
 - (void)close;
 - (void)navigateTo:(NSURL*)url;
