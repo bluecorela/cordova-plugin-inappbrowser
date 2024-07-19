@@ -38,6 +38,7 @@
 #pragma mark CDVWKInAppBrowser
 
 @implementation CDVWKInAppBrowser
+NSString *urlString;
 
 static CDVWKInAppBrowser* instance = nil;
 
@@ -85,7 +86,7 @@ static CDVWKInAppBrowser* instance = nil;
     NSString* url = [command argumentAtIndex:0];
     NSString* target = [command argumentAtIndex:1 withDefault:kInAppBrowserTargetSelf];
     NSString* options = [command argumentAtIndex:2 withDefault:@"" andClass:[NSString class]];
-    
+    self.urlString = url;
     self.callbackId = command.callbackId;
     
     if (url != nil) {
@@ -154,6 +155,7 @@ static CDVWKInAppBrowser* instance = nil;
     if (self.inAppBrowserViewController == nil) {
         self.inAppBrowserViewController = [[CDVWKInAppBrowserViewController alloc] initWithBrowserOptions: browserOptions andSettings:self.commandDelegate.settings];
         self.inAppBrowserViewController.navigationDelegate = self;
+        self.inAppBrowserViewController.urlString = self.urlString;
         
         if ([self.viewController conformsToProtocol:@protocol(CDVScreenOrientationDelegate)]) {
             self.inAppBrowserViewController.orientationDelegate = (UIViewController <CDVScreenOrientationDelegate>*)self.viewController;
@@ -239,12 +241,14 @@ static CDVWKInAppBrowser* instance = nil;
     nav.presentationController.delegate = self.inAppBrowserViewController;
     
     __weak CDVWKInAppBrowser* weakSelf = self;
+    __strong CDVWKInAppBrowser* strongSelf = weakSelf;
+    //__strong __typeof(weakSelf) strongSelf = weakSelf;
     
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
         if (weakSelf.inAppBrowserViewController != nil) {
-            float osVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
-            __strong __typeof(weakSelf) strongSelf = weakSelf;
+           float osVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
+            
             if (!strongSelf->tmpWindow) {
                 CGRect frame = [[UIScreen mainScreen] bounds];
                 if(initHidden && osVersion < 11){
@@ -552,7 +556,7 @@ static CDVWKInAppBrowser* instance = nil;
 - (void)didStartProvisionalNavigation:(WKWebView*)theWebView
 {
     NSLog(@"didStartProvisionalNavigation");
-//    self.inAppBrowserViewController.currentURL = theWebView.URL;
+    //self.inAppBrowserViewController.currentURL = theWebView.URL;
 }
 
 - (void)didFinishNavigation:(WKWebView*)theWebView
@@ -628,6 +632,8 @@ static CDVWKInAppBrowser* instance = nil;
 @implementation CDVWKInAppBrowserViewController
 
 @synthesize currentURL;
+NSString *urlString;
+
 
 CGFloat lastReducedStatusBarHeight = 0.0;
 BOOL isExiting = FALSE;
@@ -1140,7 +1146,13 @@ BOOL isExiting = FALSE;
 {
     // update url, stop spinner, update back/forward
     
-    self.addressLabel.text = [self.currentURL absoluteString];
+    //self.addressLabel.text = [self.currentURL absoluteString];
+    if(self.currentURL  != nil){
+        NSLog(self.urlString);
+        //self.addressLabel.text = @"https://web.grupopromerica.com/apps/PFCTITCC/?token=19fe5bf7-3cd0-4952-90fa-70b41362a08f&headerMovil=true&PanamaHeaderMovil=true";
+        self.addressLabel.text = self.urlString;
+    }
+    //self.addressLabel.text = @"https://www.google.com";
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
     theWebView.scrollView.contentInset = UIEdgeInsetsZero;
